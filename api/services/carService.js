@@ -10,7 +10,7 @@ class CarService {
         const kmInt = parseInt(quilometragem);
 
         const currentYear = new Date().getFullYear();
-        if (isNaN(anoInt) || anoInt < 1886 || anoInt > currentYear + 1) {
+        if (isNaN(anoInt) || anoInt < 1900 || anoInt > currentYear + 1) {
             throw new Error(`Ano inválido: informe um valor entre 1900 e ${currentYear + 1}`);
         }
 
