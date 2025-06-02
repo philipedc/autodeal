@@ -4,9 +4,24 @@ const NotFoundError = require('../utils/errors/NotFoundError');
 
 class CarService {
     async create(body, fotoPath) {
-        const { ...carData } = body;
+        const { ano, quilometragem, ...carData } = body;
+
+        const anoInt = parseInt(ano);
+        const kmInt = parseInt(quilometragem);
+
+        const currentYear = new Date().getFullYear();
+        if (isNaN(anoInt) || anoInt < 1886 || anoInt > currentYear + 1) {
+            throw new Error(`Ano inválido: informe um valor entre 1900 e ${currentYear + 1}`);
+        }
+
+        if (isNaN(kmInt) || kmInt < 0) {
+            throw new Error("Quilometragem inválida: deve ser um número positivo.");
+        }
+
         const car = await Car.create({
             foto: fotoPath,
+            ano: anoInt,
+            quilometragem: kmInt,
             ...carData
         });
 
@@ -14,29 +29,21 @@ class CarService {
     }
 
     async getAllCars() {
-        const cars = await Car.findAll({
-            where: { available: true }
-        });
-        return cars;
+        return await Car.findAll({ where: { available: true } });
     }
 
     async getCarById(id) {
         const car = await Car.findByPk(id);
-        if (car) {
-            return car;
-        } else {
-            throw new NotFoundError('Carro não encontrado.');
-        }
+        if (!car) throw new NotFoundError('Carro não encontrado.');
+        return car;
     }
 
     async getPhoto(id) {
         const car = await Car.findByPk(id);
         if (car && car.foto) {
-            const fullPath = path.join(car.foto);
-            return fullPath;
-        } else {
-            throw new NotFoundError('Carro não encontrado.');
+            return path.join(car.foto);
         }
+        throw new NotFoundError('Carro não encontrado.');
     }
 }
 

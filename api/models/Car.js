@@ -2,7 +2,7 @@ const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/connection');
 const User = require('./User');
 
-class Car extends Model { }
+class Car extends Model {}
 
 Car.init({
     id: {
@@ -22,6 +22,21 @@ Car.init({
     preco: {
         type: DataTypes.FLOAT,
         allowNull: false
+    },
+    ano: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+            min: 1900,
+            max: new Date().getFullYear() + 1
+        }
+    },
+    quilometragem: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     foto: {
         type: DataTypes.STRING,
