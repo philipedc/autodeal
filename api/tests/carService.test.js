@@ -1,121 +1,141 @@
-
-const CarService = require('../../services/carService');
-const Car = require('../../models/Car');
-const NotFoundError = require('../../utils/errors/NotFoundError');
 const path = require('path');
 
-jest.mock('../../models/Car');
+const CarService = require('../services/carService');
+const NotFoundError = require('../utils/errors/NotFoundError');
+const Car = require('../models/Car');
+
+jest.mock('../models/Car');
 
 describe('CarService', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('create()', () => {
+    const currentYear = new Date().getFullYear();
+
+    it('deve criar um carro quando os dados forem válidos', async () => {
+      const fotoPath = 'uploads/car1.jpg';
+      const body = {
+        ano: '2022',
+        quilometragem: '15000',
+        nome: 'Fiesta',
+        preco: 20000,
+      };
+
+      const carCreated = {
+        id: 1,
+        foto: fotoPath,
+        ano: 2022,
+        quilometragem: 15000,
+        nome: 'Fiesta',
+        preco: 20000,
+      };
+      Car.create.mockResolvedValue(carCreated);
+
+      const resultado = await CarService.create(body, fotoPath);
+
+      expect(Car.create).toHaveBeenCalledWith({
+        foto: fotoPath,
+        ano: 2022,
+        quilometragem: 15000,
+        nome: 'Fiesta',
+        preco: 20000,
+      });
+      expect(resultado).toBe(carCreated);
     });
 
-    test('create: deve criar um carro com dados válidos', async () => {
-        const mockBody = {
-            nome: 'Fiat Uno',
-            descricao: 'Carro econômico',
-            preco: 15000,
-            ano: 2015,
-            quilometragem: 50000,
-            idVendedor: 1
-        };
-        const mockFotoPath = 'uploads/carro1.jpg';
-        const mockCreatedCar = { id: 1, ...mockBody, foto: mockFotoPath };
-
-        Car.create.mockResolvedValue(mockCreatedCar);
-
-        const result = await CarService.create(mockBody, mockFotoPath);
-
-        expect(Car.create).toHaveBeenCalledWith({
-            foto: mockFotoPath,
-            ...mockBody
-        });
-        expect(result).toEqual(mockCreatedCar);
+    it('deve lançar erro quando o ano não for numérico', async () => {
+      const body = { ano: 'abcd', quilometragem: '1000', nome: 'Uno', preco: 15000 };
+      await expect(CarService.create(body, 'img.jpg')).rejects.toThrow(
+        `Ano inválido: informe um valor entre 1900 e ${currentYear + 1}`
+      );
     });
 
-    test('create: deve lançar erro se o ano for inválido', async () => {
-        const mockBody = {
-            nome: 'Fusca',
-            descricao: 'Antigo',
-            preco: 5000,
-            ano: 1800,
-            quilometragem: 100000,
-            idVendedor: 1
-        };
-        const mockFotoPath = null;
-
-        await expect(CarService.create(mockBody, mockFotoPath))
-            .rejects
-            .toThrow("Ano inválido: informe um valor entre 1886 e " + new Date().getFullYear());
+    it('deve lançar erro quando o ano for menor que 1900', async () => {
+      const body = { ano: '1899', quilometragem: '1000', nome: 'Uno', preco: 15000 };
+      await expect(CarService.create(body, 'img.jpg')).rejects.toThrow(
+        `Ano inválido: informe um valor entre 1900 e ${currentYear + 1}`
+      );
     });
 
-    test('create: deve lançar erro se a quilometragem for inválida', async () => {
-        const mockBody = {
-            nome: 'Celta',
-            descricao: 'Compacto',
-            preco: 12000,
-            ano: 2010,
-            quilometragem: -100,
-            idVendedor: 1
-        };
-        const mockFotoPath = null;
-
-        await expect(CarService.create(mockBody, mockFotoPath))
-            .rejects
-            .toThrow("Quilometragem inválida: deve ser um número positivo.");
+    it('deve lançar erro quando o ano for maior que currentYear+1', async () => {
+      const body = { ano: String(currentYear + 2), quilometragem: '1000', nome: 'Uno', preco: 15000 };
+      await expect(CarService.create(body, 'img.jpg')).rejects.toThrow(
+        `Ano inválido: informe um valor entre 1900 e ${currentYear + 1}`
+      );
     });
 
-    test('getAllCars: deve retornar todos os carros disponíveis', async () => {
-        const mockCars = [
-            { id: 1, nome: 'Uno', available: true },
-            { id: 2, nome: 'Gol', available: true }
-        ];
-
-        Car.findAll.mockResolvedValue(mockCars);
-
-        const result = await CarService.getAllCars();
-
-        expect(Car.findAll).toHaveBeenCalledWith({ where: { available: true } });
-        expect(result).toEqual(mockCars);
+    it('deve lançar erro quando a quilometragem não for numérica', async () => {
+      const body = { ano: '2020', quilometragem: 'xyz', nome: 'Ka', preco: 25000 };
+      await expect(CarService.create(body, 'img.jpg')).rejects.toThrow(
+        'Quilometragem inválida: deve ser um número positivo.'
+      );
     });
 
-    test('getCarById: deve retornar o carro quando encontrado', async () => {
-        const mockCar = { id: 1, nome: 'Palio' };
+    it('deve lançar erro quando a quilometragem for negativa', async () => {
+      const body = { ano: '2020', quilometragem: '-5', nome: 'Ka', preco: 25000 };
+      await expect(CarService.create(body, 'img.jpg')).rejects.toThrow(
+        'Quilometragem inválida: deve ser um número positivo.'
+      );
+    });
+  });
 
-        Car.findByPk.mockResolvedValue(mockCar);
+  describe('getAllCars()', () => {
+    it('deve retornar todos os carros disponíveis', async () => {
+      const carros = [
+        { id: 1, available: true },
+        { id: 2, available: true },
+      ];
+      Car.findAll.mockResolvedValue(carros);
 
-        const result = await CarService.getCarById(1);
+      const resultado = await CarService.getAllCars();
 
-        expect(Car.findByPk).toHaveBeenCalledWith(1);
-        expect(result).toEqual(mockCar);
+      expect(Car.findAll).toHaveBeenCalledWith({ where: { available: true } });
+      expect(resultado).toBe(carros);
+    });
+  });
+
+  describe('getCarById()', () => {
+    it('deve retornar o carro quando encontrado', async () => {
+      const carro = { id: 42, nome: 'Corolla' };
+      Car.findByPk.mockResolvedValue(carro);
+
+      const resultado = await CarService.getCarById(42);
+
+      expect(Car.findByPk).toHaveBeenCalledWith(42);
+      expect(resultado).toBe(carro);
     });
 
-    test('getCarById: deve lançar NotFoundError quando o carro não for encontrado', async () => {
-        Car.findByPk.mockResolvedValue(null);
+    it('deve lançar NotFoundError quando não encontrar o carro', async () => {
+      Car.findByPk.mockResolvedValue(null);
 
-        await expect(CarService.getCarById(999))
-            .rejects
-            .toThrow(NotFoundError);
+      await expect(CarService.getCarById(999)).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe('getPhoto()', () => {
+    it('deve retornar o caminho da foto quando existir', async () => {
+      const carro = { id: 7, foto: 'uploads/car7.png' };
+      Car.findByPk.mockResolvedValue(carro);
+
+      const resultado = await CarService.getPhoto(7);
+
+      expect(Car.findByPk).toHaveBeenCalledWith(7);
+      expect(resultado).toBe(path.join(carro.foto));
     });
 
-    test('getPhoto: deve retornar o caminho completo da foto do carro', async () => {
-        const mockCar = { id: 1, foto: 'uploads/carro1.jpg' };
-        const expectedPath = path.join('uploads/carro1.jpg');
+    it('deve lançar NotFoundError quando o carro não existir', async () => {
+      Car.findByPk.mockResolvedValue(null);
 
-        Car.findByPk.mockResolvedValue(mockCar);
-
-        const result = await CarService.getPhoto(1);
-
-        expect(Car.findByPk).toHaveBeenCalledWith(1);
-        expect(result).toEqual(expectedPath);
+      await expect(CarService.getPhoto(123)).rejects.toThrow(NotFoundError);
     });
 
-    test('getPhoto: deve lançar NotFoundError quando o carro não tiver uma foto ou não for encontrado', async () => {
-        Car.findByPk.mockResolvedValue(null);
+    it('deve lançar NotFoundError quando o carro existir, mas não tiver foto', async () => {
+      const carroSemFoto = { id: 8, foto: null };
+      Car.findByPk.mockResolvedValue(carroSemFoto);
 
-        await expect(CarService.getPhoto(999))
-            .rejects
-            .toThrow(NotFoundError);
+      await expect(CarService.getPhoto(8)).rejects.toThrow(NotFoundError);
     });
+  });
 });
