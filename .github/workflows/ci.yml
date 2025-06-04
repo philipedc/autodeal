@@ -7,16 +7,17 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-test-upload:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [18]
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
-        
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -27,7 +28,14 @@ jobs:
           cd api
           npm install
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
           cd api
-          npm test
+          npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./api/coverage/lcov.info
+          fail_ci_if_error: true
