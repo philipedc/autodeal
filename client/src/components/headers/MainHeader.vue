@@ -30,7 +30,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-// import { logout } from '@/controllers/UserController'
+import { logout } from '@/controllers/UserController'
 import logo from '@/assets/images/logo.png'
 import userDefault from '@/assets/images/user-default-image.png'
 
@@ -65,9 +65,9 @@ export default {
         this.$router.push('/profile')
       },
       async logout () {
-        // await logout().catch(() => {
-        //   console.log('Erro ao deslogar usuário.')
-        // })
+        await logout().catch(() => {
+          console.log('Erro ao deslogar usuário.')
+        })
         this.$router.push('/login')
       }
   },
@@ -75,9 +75,6 @@ export default {
       ...mapGetters(['loggedInUser'])
   },
   mounted() {
-    // user photo is smth like uploads\\1713725475470.webp in api folder
-    // need only //1713725475470.webp
-    console.log(this.loggedInUser)
     if (!this.loggedInUser?.photo) {
       this.userPhoto = userDefault
       return

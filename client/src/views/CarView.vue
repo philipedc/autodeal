@@ -153,10 +153,6 @@ export default {
   align-items: flex-end;
   padding: 20px;
 
-  header {
-			margin-bottom: 90px;
-  }
-
   .car {
       display: flex;
       flex-direction: row;
@@ -272,13 +268,13 @@ export default {
                 border-radius: 35px;  
             }
 
-            .produto-anunciante{
+            .car-anunciante{
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
                 justify-content: flex-start;
                 gap:15px;
-
+                color: #fff;
                 
                 .produto{
                     color: #ffffff;

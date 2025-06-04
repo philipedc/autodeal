@@ -1,7 +1,7 @@
 import { makeRequest } from '../libs/RequestModule';
 
 const getCar = async (id) => {
-    const response = (await makeRequest('GET', `/car/${id}`))
+    const response = (await makeRequest('GET', `/cars/${id}`))
     return response
 }
 
@@ -12,8 +12,14 @@ const getVendor = async (id) => {
 
 const getAllCars = async () => {
    
-    const response = (await makeRequest('GET', '/car'))
+    const response = (await makeRequest('GET', '/cars'))
     return response
 }
 
-export { getCar, getVendor, getAllCars }
+const deleteCar = async (id) => {
+    const response = await makeRequest('DELETE', `/cars/${id}`);
+    return response;
+};
+
+export { getCar, getVendor, getAllCars, deleteCar };
+

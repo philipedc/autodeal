@@ -1,17 +1,21 @@
 <template>
-  <div class="vendor-product-modal">
+  <div class="vendor-car-modal">
       <ModalComponent :modalOpen="modalOpen" @closeModal="$emit('closeModal')">
-          <h2>Cadastrar Produto</h2>
+          <h2>Cadastrar Carro</h2>
           
           <div class="top-fields">
               <div class="text-inputs">
                   <h3><span>*</span> Campos obrigatórios</h3>
-                  <label for="name">Nome <span>*</span></label>
-                  <input type="text" placeholder="Título" required ref="name" >
+                  <label for="name">Modelo <span>*</span></label>
+                  <input type="text" placeholder="Ex: Honda Civic" required ref="name" >
 
-                  <label for="author">Preço <span>*</span></label>
+                  <label for="price">Preço <span>*</span></label>
                   <input type="text" placeholder="Preço" required ref="price" @input="formatPrice" >
-            </div>
+              </div>
+
+              <div class="text-inputs">
+                  
+              </div>
           
               <div class="image-input">
                   <label for="inputfile" class="add-image-label" v-if="!imagePreviewUrl">
@@ -25,22 +29,33 @@
               </div>
           </div>
 
-        <div class="middle-fields">
+          <div class="middle-fields">
               <div>
-                  <label for="author">Descricão <span>*</span></label>
+                  <div class="middle-upper-fields">
+                    <div class="field-group">
+                      <label for="ano">Ano <span>*</span></label>
+                      <input type="text" placeholder="Ex: 2018" required ref="ano">
+                    </div>
+                    <div class="field-group">
+                      <label for="quilometragem">Quilometragem <span>*</span></label>
+                      <input type="text" placeholder="Ex: 50000" required ref="quilometragem" @input="formatPrice">
+                    </div>
+                  </div>
+
+                  <label for="description">Descrição <span>*</span></label>
                   <textarea type="text"  
-                  class="description-area" placeholder="Descrição" required ref="description"></textarea>
+                  class="description-area" placeholder="Descrição do carro" required ref="description"></textarea>
               </div>
-            </div>
+          </div>
 
           <div class="buttons">
-              <button class="cancel" @click="this.$emit('closeModal')">Cancelar</button>
+              <button class="cancel" @click="$emit('closeModal')">Cancelar</button>
               <button 
                   class="save" 
                   @click="handleSave" 
                   v-if="!loading" 
-                >
-                      Salvar
+              >
+                  Salvar
               </button>
               <div class="loading" v-else>
                   <i class="fa fa-spinner fa-spin"></i>
@@ -54,14 +69,14 @@
 <script>
 import ModalComponent from '@/components/modals/ModalComponent.vue'
 import { mapGetters } from 'vuex'
-import { addUserProduct } from '@/controllers/ProfileController'
+import { addUserCar } from '@/controllers/ProfileController'
 
 export default {
-  name: 'VendorProductModal',
+  name: 'CarRegistrationModal',
   components: {
     ModalComponent
   },
-  props: ['modalOpen', 'product'],
+  props: ['modalOpen', 'car'],
   data() {
     return {
       imagePreviewUrl: null,
@@ -73,145 +88,150 @@ export default {
   },
   methods: {
     handleFileUpload(event) {
-        const file = event.target.files[0];
-
-        // verificar se imagem é jpg ou png, svg ou webp
-        if (file?.type !== 'image/jpeg' && file?.type !== 'image/png' && file?.type !== 'image/svg+xml' && file?.type !== 'image/webp') {
-            this.$toast.open({
-                message: 'Formato de imagem inválido. A imagem deve ser JPG ou PNG.',
-                type: 'warning',
-                position: 'top-right',
-                duration: 5000
-            })
-            return
-        }
-
-        if (file) {
-            this.fileChanged = true
-            const formData = new FormData()
-            formData.append('photo', file)
-            this.imagePreviewUrl = URL.createObjectURL(file);
-            this.imgFile = file
-        }
+      const file = event.target.files[0];
+      if (file?.type !== 'image/jpeg' && file?.type !== 'image/png' && file?.type !== 'image/svg+xml' && file?.type !== 'image/webp') {
+          this.$toast.open({
+              message: 'Formato de imagem inválido. Use JPG, PNG, SVG ou WEBP.',
+              type: 'warning',
+              position: 'top-right',
+              duration: 5000
+          })
+          return
+      }
+      if (file) {
+          this.fileChanged = true
+          this.imagePreviewUrl = URL.createObjectURL(file)
+          this.imgFile = file
+      }
     },
-    formatPrice(event) {
-    let value = this.$refs.price.value;
-    
-    // Remove any non-digit characters (except for the decimal point).
-    value = value.replace(/\D/g, "");
-
-    // Format as currency
-    if (value) {
+    formatPrice() {
+      let value = this.$refs.price.value
+      value = value.replace(/\D/g, "")
+      if (value) {
         value = (parseInt(value) / 100).toLocaleString("pt-BR", { 
             style: "currency", 
             currency: "BRL" 
-        });
-    }
-    
-    // Update the input field
-    this.$refs.price.value = value;
-},
-    async handleSave() {
-        this.loading = true
-        const name = this.$refs.name.value
-        const description = this.$refs.description.value
-        let price = this.$refs.price.value
-        const idVendedor = this.loggedInUser.id
-
-        if (!name || !price || !description) {
-            this.$toast.open({
-                message: 'Preencha todos os campos obrigatórios',
-                type: 'warning',
-                position: 'top-right',
-                duration: 5000
-            })
-            this.loading = false
-            return
-        }
-
-        // volta o preco para o formato de float
-        const sanitizedPrice = price.replace(/[^\d,]/g, '').replace(',', '.');
-        price = parseFloat(sanitizedPrice) ;
-
-        const formData = new FormData()
-        formData.append('nome', name)
-        formData.append('descricao', description)
-        formData.append('preco', price)
-        formData.append('foto', this.imgFile);
-        formData.append('idVendedor', idVendedor)
-        await addUserProduct(formData).then((res) => {
-          console.log('response', res)
-          if (res.status === 200) {
-              this.$toast.open({
-                  message: 'Produto cadastrado com sucesso',
-                  type: 'success',
-                  position: 'top-right',
-                  duration: 5000
-              })
-              this.loading = false
-              this.$emit('closeModal')
-          } else {
-              this.$toast.open({
-                  message: 'Erro ao cadastrar produto',
-                  type: 'error',
-                  position: 'top-right',
-                  duration: 5000
-              })
-              this.loading = false
-              this.$emit('closeModal')
-          }
-        }).catch(() => {
-            this.$toast.open({
-                message: 'Erro ao cadastrar Produto',
-                type: 'error',
-                position: 'top-right',
-                duration: 5000
-            })
-            this.loading = false
-            this.$emit('closeModal')
         })
-        
+      }
+      this.$refs.price.value = value
+    },
+    async handleSave() {
+      this.loading = true
+      const name = this.$refs.name.value
+      const description = this.$refs.description.value
+      let price = this.$refs.price.value
+      const idVendedor = this.loggedInUser.id
+      const ano = this.$refs.ano.value
+      const quilometragem = this.$refs.quilometragem.value
+
+      if (!name || !price || !description) {
+        this.$toast.open({
+          message: 'Preencha todos os campos obrigatórios',
+          type: 'warning',
+          position: 'top-right',
+          duration: 5000
+        })
+        this.loading = false
+        return
+      }
+
+      if (ano < 1900 || ano > new Date().getFullYear()) {
+        this.$toast.open({
+          message: 'Ano inválido',
+          type: 'warning',
+          position: 'top-right',
+          duration: 5000
+        })
+        this.loading = false
+        return
+      }
+
+      if (quilometragem < 0) {
+        this.$toast.open({
+          message: 'Quilometragem inválida',
+          type: 'warning',
+          position: 'top-right',
+          duration: 5000
+        })
+        this.loading = false
+        return
+      }
+
+      const sanitizedPrice = price.replace(/[^\d,]/g, '').replace(',', '.')
+      price = parseFloat(sanitizedPrice)
+
+      const formData = new FormData()
+      formData.append('nome', name)
+      formData.append('descricao', description)
+      formData.append('preco', price)
+      formData.append('foto', this.imgFile)
+      formData.append('idVendedor', idVendedor)
+      formData.append('ano', ano)
+      formData.append('quilometragem', quilometragem)
+
+      await addUserCar(formData).then((res) => {
+        if (res.status === 200) {
+          this.$toast.open({
+            message: 'Carro cadastrado com sucesso',
+            type: 'success',
+            position: 'top-right',
+            duration: 5000
+          })
+        } else {
+          this.$toast.open({
+            message: 'Erro ao cadastrar carro',
+            type: 'error',
+            position: 'top-right',
+            duration: 5000
+          })
+        }
+        this.loading = false
+        this.$emit('closeModal')
+      }).catch(() => {
+        this.$toast.open({
+          message: 'Erro ao cadastrar carro',
+          type: 'error',
+          position: 'top-right',
+          duration: 5000
+        })
+        this.loading = false
+        this.$emit('closeModal')
+      })
     },
     triggerFileInput() {
-        this.$refs.inputfile.click()
+      this.$refs.inputfile.click()
     }
   },
   computed: {
     ...mapGetters(['loggedInUser']),
   },
-  mounted() {
-  },
   watch: {
-    // watch isDonation and set price to not editable
     isDonation() {
-        if (this.isDonation) {
-           this.$refs.price.setAttribute('disabled', true)
-           this.$refs.price.value = '0.00' 
-           this.$refs.price.style.backgroundColor = '#f2f2f2'
-          
-        } else {
-          this.$refs.price.removeAttribute('disabled')
-          this.$refs.price.style.backgroundColor = '#fff'
-        }
+      if (this.isDonation) {
+        this.$refs.price.setAttribute('disabled', true)
+        this.$refs.price.value = '0.00'
+        this.$refs.price.style.backgroundColor = '#f2f2f2'
+      } else {
+        this.$refs.price.removeAttribute('disabled')
+        this.$refs.price.style.backgroundColor = '#fff'
+      }
     },
     modalOpen: {
-        handler: function () {
-            if (!this.editProduct) {
-                this.$nextTick(() => { 
-                    this.fileChanged = false
-                    this.imagePreviewUrl = null
-                    this.isDonation = false
-                });
-            }
-        },
-        deep: true
+      handler() {
+        this.$nextTick(() => {
+          this.fileChanged = false
+          this.imagePreviewUrl = null
+          this.isDonation = false
+        })
+      },
+      deep: true
     }
   }
 }
 </script>
 
 <style lang="less">
-.vendor-product-modal {
+.vendor-car-modal {
     * {
         box-sizing: border-box;
     } 
@@ -256,7 +276,7 @@ export default {
         flex-direction: row;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 60px;
+        gap: 25px;
         margin-top: 20px;
 
         .text-inputs {
@@ -275,7 +295,7 @@ export default {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                width: 150px;
+                width: 180px;
                 height: 150px;
                 border: 2px dashed #828282;
                 border-radius: 5px;
@@ -320,6 +340,32 @@ export default {
     }
 
     .middle-fields {
+      .middle-upper-fields {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+
+          .field-group {
+            display: flex;
+            flex-direction: column;
+
+            label {
+              margin-bottom: 5px;
+            }
+
+            input {
+              width: 180px;
+              height: 40px;
+              border-radius: 5px;
+              border: 1px solid #ccc;
+              padding: 0 10px;
+              font-size: 14px;
+              font-weight: 500;
+              color: #232323;
+            }
+          }
+        }
+
         div {
             display: flex;
             flex-direction: column;

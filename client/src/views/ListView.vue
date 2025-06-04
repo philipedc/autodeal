@@ -3,7 +3,6 @@
     <header>
       <MainHeader />
     </header>
-           
     <div class="search" v-if="cars.length > 0">
       <input type="text" placeholder="Buscar Carro" v-model="searchText" @input="searchCar()" id="search" />
       <i class="fa fa-search icon" @click="searchCar()"></i>
@@ -15,7 +14,7 @@
           <div class="car-container">
             <img :src="car.image" class="car-image" alt="Cover image" />
 
-            <div class="cars-info">
+            <div class="car-info">
               <h2 class="title">{{ car.nome }}</h2>
               <div class="description">{{ fixLength(car.descricao) }}</div>
 
@@ -27,22 +26,22 @@
           </div>
         </div>
       </div>
-
-      <div class="not-found" v-if="filteredCars.length === 0">
-        <h2>Nenhum carro encontrado :(</h2>
-      </div>
-
-      <div class="not-found" v-else-if="cars.length === 0">
-        <h2>Nenhum carro disponível :(</h2>
-      </div>
     </div>  
+      
+    <div class="not-found" v-if="filteredCars.length === 0">
+      <h2>Nenhum carro encontrado :(</h2>
+    </div>
+
+    <div class="not-found" v-else-if="cars.length === 0">
+      <h2>Nenhum carro disponível :(</h2>
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import MainHeader from '@/components/headers/MainHeader.vue';
-// import { getAllCars } from '@/controllers/CarController'
+import { getAllCars } from '@/controllers/CarController'
 
 export default {
   name: 'ListView',
@@ -83,94 +82,21 @@ export default {
   },
   
   async mounted() {
-    // console.log(this.loggedInUser?.id)
+    await getAllCars().then((response) => {
+      let cars = response.data
 
-    // await getAllCars().then((response) => {
-    //   let cars = response.data
+      cars.forEach(car => {
+        const photoLink = car.foto.replace(/\\/g, '/').replace('uploads', 'uploads/')
+        car.image = 'http://localhost:3000/' + photoLink
+      })
 
-    //   cars.forEach(car => {
-    //     const photoLink = car.foto.replace(/\\/g, '/').replace('uploads', 'uploads/')
-    //     car.image = 'http://localhost:3000/' + photoLink
-    //   })
+      cars = cars.filter(car => car.idVendedor !== this.loggedInUser.id)
 
-    //   cars = cars.filter(car => car.idVendedor !== this.loggedInUser.id)
-
-    //   this.cars = cars
-    //   this.filteredCars = cars
-    // }).catch((error) => {
-    //   console.log(error)
-    // })
-
-    // mock
-    this.cars = [
-      {
-        id: 1,
-        nome: 'Carro 1',
-        descricao: 'Descrição do Carro 1',
-        preco: 100.00,
-        idVendedor: 2,
-        image: 'https://imageio.forbes.com/specials-images/imageserve/5d35eacaf1176b0008974b54/0x0.jpg?format=jpg&crop=4560,2565,x790,y784,safe&height=900&width=1600&fit=bounds'
-      },
-      {
-        id: 2,
-        nome: 'Carro 2',
-        descricao: 'Descrição do Carro 2',
-        preco: 200.00,
-        idVendedor: 3,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      },
-      {
-        id: 3,
-        nome: 'Carro 3',
-        descricao: 'Descrição do Carro 3',
-        preco: 1,
-        idVendedor: 4,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      },
-      {
-        id: 4,
-        nome: 'Carro 4',
-        descricao: 'Descrição do Carro 4',
-        preco: 150.00,
-        idVendedor: 5,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      },
-      {
-        id: 5,
-        nome: 'Carro 5',
-        descricao: 'Descrição do Carro 5',
-        preco: 300.00,
-        idVendedor: 6,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      },
-      {
-        id: 6,
-        nome: 'Carro 6',
-        descricao: 'Descrição do Carro 6',
-        preco: 50.00,
-        idVendedor: 7,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      },
-      {
-        id: 7,
-        nome: 'Carro 7',
-        descricao: 'Descrição do Carro 7',
-        preco: 75.00,
-        idVendedor: 8,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      },
-      {
-        id: 8,
-        nome: 'Carro 8',
-        descricao: 'Descrição do Carro 8',
-        preco: 120.00,
-        idVendedor: 9,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEyR_bM0FtYagyhUZY7F2H5rBSJjclo5atmg&s'
-      }
-    ];
-    
-    this.filteredCars = this.cars
-    console.log(this.cars)
+      this.cars = cars
+      this.filteredCars = cars
+    }).catch((error) => {
+      console.log(error)
+    })
   }
 }
 </script>
@@ -292,6 +218,6 @@ i{
 .not-found {
   margin-top: 120px;
   text-align: center;
-  color: var(--secondaryColor);
+  color: #333;
 }
 </style>

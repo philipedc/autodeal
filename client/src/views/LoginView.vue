@@ -62,7 +62,7 @@ import ModalComponent from '@/components/modals/ModalComponent.vue'
 import { mapActions, mapGetters } from 'vuex'
 import logo from '@/assets/images/logo.png'
 import icon from '@/assets/images/icon.png'
-// import { login, logout, register } from '@/controllers/UserController'
+import { login, logout, register } from '@/controllers/UserController'
 import { vMaska } from 'maska/vue'
 
 export default {
@@ -105,40 +105,39 @@ export default {
         }
 
         // logout before login to avoid "already logged in" error
-        // await logout().catch(() => {
-        //     console.log('Erro ao deslogar usuário.')
-        // })
+        await logout().catch(() => {
+            console.log('Erro ao deslogar usuário.')
+        })
 
-        // await login(email, password).then(async (res) => {
-        //     if (res.status === 200) {
-        //           const userData = res.data
-        //           const user = {
-        //               id: userData.id,
-        //               email: userData.email,
-        //               name: userData.nome,
-        //               photo: userData.foto,
-        //               cellphone: userData.celular,
-        //           }
-        //           console.log(user)
-        //           this.setUser(user)
-        //           localStorage.setItem('user', JSON.stringify(user))
-        //           this.$toast.open({
-        //               message: 'Bem vindo(a)!',
-        //               type: 'success',
-        //               duration: 4000,
-        //               position: 'top-right'
-        //           });
-        //           this.$router.push('/')
-        //     }
-        // }).catch(async (err) => {
-        //     console.log(err)
-        //     this.$toast.open({
-        //         message: 'Usuário ou senha incorretos.',
-        //         type: 'error',
-        //         duration: 5000,
-        //         position: 'top-right'
-        //     });
-        // })
+        await login(email, password).then(async (res) => {
+            if (res.status === 200) {
+                  const userData = res.data
+                  const user = {
+                      id: userData.id,
+                      email: userData.email,
+                      name: userData.nome,
+                      photo: userData.foto,
+                      cellphone: userData.celular,
+                  }
+                  this.setUser(user)
+                  localStorage.setItem('user', JSON.stringify(user))
+                  this.$toast.open({
+                      message: 'Bem vindo(a)!',
+                      type: 'success',
+                      duration: 4000,
+                      position: 'top-right'
+                  });
+                  this.$router.push('/')
+            }
+        }).catch(async (err) => {
+            console.log(err)
+            this.$toast.open({
+                message: 'Usuário ou senha incorretos.',
+                type: 'error',
+                duration: 5000,
+                position: 'top-right'
+            });
+        })
       },
       async registerUser () {
         console.log('registering user') 
@@ -157,31 +156,31 @@ export default {
             return
         }
 
-        // await register(name, email, cellphone, password).then(async (res) => {
-        //     if (res.status === 200) {
-        //         this.$toast.open({
-        //             message: 'Usuário cadastrado com sucesso!',
-        //             type: 'success',
-        //             duration: 3000,
-        //             position: 'top-right'
-        //         });
-        //         this.registerModalOpen = false
+        await register(name, email, cellphone, password).then(async (res) => {
+            if (res.status === 200) {
+                this.$toast.open({
+                    message: 'Usuário cadastrado com sucesso!',
+                    type: 'success',
+                    duration: 3000,
+                    position: 'top-right'
+                });
+                this.registerModalOpen = false
 
-        //         this.login(email, password)
-        //     }
-        // }).catch(async (err) => {
-        //     console.log(err)
-        //     this.$toast.open({
-        //         message: 'Erro ao cadastrar usuário. Verifique os campos e tente novamente.',
-        //         type: 'error',
-        //         duration: 5000,
-        //         position: 'top-right'
-        //     });
-        // })
+                this.login(email, password)
+            }
+        }).catch(async (err) => {
+            console.log(err)
+            this.$toast.open({
+                message: 'Erro ao cadastrar usuário. Verifique os campos e tente novamente.',
+                type: 'error',
+                duration: 5000,
+                position: 'top-right'
+            });
+        })
       }
   },
   computed: {
-      // ...mapGetters(['loggedInUser'])
+      ...mapGetters(['loggedInUser'])
   },
   mounted() {
   }
