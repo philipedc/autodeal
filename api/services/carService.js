@@ -45,6 +45,13 @@ class CarService {
         }
         throw new NotFoundError('Carro não encontrado.');
     }
+
+    async deleteCar(id) {
+        const car = await Car.findByPk(id);
+        if (!car) throw new NotFoundError('Carro não encontrado.');
+        await car.destroy();
+        return { message: 'Carro deletado com sucesso.' };
+    }
 }
 
 module.exports = new CarService();

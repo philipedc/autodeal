@@ -4,10 +4,10 @@ const SaleService = require('../services/saleService');
 
 router.post('/', async (req, res) => {
     try {
-        console.log(req.body);
         const sale = await SaleService.purchase(req.body);
         res.status(200).send(sale);
     } catch (error) {
+        console.log('Erro ao realizar a venda:', error);
         res.status(400).send(error);
     }
 });

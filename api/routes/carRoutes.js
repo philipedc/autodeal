@@ -6,11 +6,12 @@ const CarService = require('../services/carService');
 
 router.post('/', upload.single('foto'), async (req, res) => {
     try {
-        const fotoPath = req.file ? req.file.path : null;
-        const car = await CarService.create(req.body, fotoPath);
+        const relativePathForDb = path.join('uploads', req.file.filename);
+        const car = await CarService.create(req.body, relativePathForDb);
         res.status(200).send(car);
     } catch (error) {
         res.status(400).send(error);
+        console.error('Erro ao criar carro:', error);
     }
 });
 
@@ -38,6 +39,15 @@ router.get('/:id/photo', async (req, res) => {
         res.sendFile(fullPath, { root: path.join(__dirname, '..') });
     } catch (error) {
         res.status(400).send({ message: 'Erro no servidor ao buscar a foto do carro!' });
+    }
+});
+
+router.delete('/:id', async (req, res) => {
+    try {
+        await CarService.deleteCar(req.params.id);
+        res.send({ message: 'Carro deletado com sucesso.' });
+    } catch (error) {
+        res.status(400).send(error);
     }
 });
 

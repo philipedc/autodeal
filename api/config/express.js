@@ -1,15 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const userRoutes = require('../routes/users');
-const productRoutes = require('../routes/products');
-const saleRoutes = require('../routes/sales');
+const userRoutes = require('../routes/userRoutes');
+const carRoutes = require('../routes/carRoutes');
+const saleRoutes = require('../routes/saleRoutes');
 const cors = require('cors');
+require('dotenv').config();
+const path = require('path');
 
 const app = express();
 
 const options = {
-    origin: 'http://localhost:8080',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true
 };
 app.use(cors(options));
@@ -23,10 +25,12 @@ app.use(express.urlencoded({
 
 
 app.use('/users', userRoutes)
-app.use('/products', productRoutes)
+app.use('/cars', carRoutes)
 app.use('/sales', saleRoutes)
 
-app.use('/uploads', express.static('uploads'));
+const staticUploadsPath = path.join(__dirname, '..', 'uploads');
+console.log(`Servindo arquivos estáticos de: ${staticUploadsPath}`);
+app.use('/uploads', express.static(staticUploadsPath));
 
 
 module.exports = app;

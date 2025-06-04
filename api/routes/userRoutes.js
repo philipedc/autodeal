@@ -58,10 +58,10 @@ router.get('/:id/photo', async (req, res) => {
     }
 });
 
-router.get('/:id/products', async (req, res) => {
+router.get('/:id/cars', async (req, res) => {
     try {
-        const products = await UsersService.getAllProducts(req.params.id);
-        res.send(products);
+        const cars = await UsersService.getAllCars(req.params.id);
+        res.send(cars);
     } catch (error) {
         console.log(error);
         res.status(400).send({ message: 'Erro do servidor ao recuperar produtos!' });
@@ -79,10 +79,16 @@ router.put('/:id', async (req, res) => {
 
 router.put('/:id/photo', upload.single('foto'), async (req, res) => {
     try {
-        const path = req.file ? req.file.path : null;
-        const user = await UsersService.updatePhoto(req.params.id, path);
+        // const path = req.file ? req.file.path : null;
+        const relativePathForDb = path.join('uploads', req.file.filename);
+
+        // Passe o relativePathForDb para o seu serviço.
+        // O UsersService.updatePhoto deve armazenar este relativePathForDb no campo 'foto' do usuário.
+        const user = await UsersService.updatePhoto(req.params.id, relativePathForDb);
+        // const user = await UsersService.updatePhoto(req.params.id, path);
         res.send(user);
     } catch (error) {
+        console.error('Erro ao atualizar foto do usuário:', error);
         res.status(400).send({ message: 'Erro do servidor ao atualizar foto!' });
     }
 });
