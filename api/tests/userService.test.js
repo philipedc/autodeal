@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const PermissionError = require('../utils/errors/PermissionError');
 const NotFoundError = require('../utils/errors/NotFoundError');
 const path = require('path');
+const encryptPasswordUtil = require('../utils/encryptPassword');
 
 jest.mock('../models/User');
 jest.mock('../models/Car');
@@ -73,5 +74,101 @@ describe('UserService', () => {
         });
         expect(result).toEqual(mockCars);
     });
+
+    test('create: deve criar um novo usuário com senha criptografada', async () => {
+        const body = { name: 'João', email: 'joao@email.com', senha: '123456', fotoPath: 'path/to/photo.jpg' };
+        const mockEncrypted = 'encrypted123';
+        const createdUser = { id: 1, ...body, senha: mockEncrypted };
+
+        encryptPasswordUtil.mockResolvedValue(mockEncrypted);
+        User.create.mockResolvedValue(createdUser);
+
+        const result = await UserService.create(body);
+
+        expect(encryptPasswordUtil).toHaveBeenCalledWith('123456');
+        expect(User.create).toHaveBeenCalledWith({
+            name: 'João',
+            email: 'joao@email.com',
+            foto: 'path/to/photo.jpg',
+            fotoPath: 'path/to/photo.jpg',
+            senha: mockEncrypted
+        });
+        expect(result).toEqual(createdUser);
+        expect(result.senha).toBe(mockEncrypted);
+    });
+
+    test('updatePassword: deve atualizar a senha se a atual estiver correta', async () => {
+        const mockUser = { id: 1, senha: 'encryptedOld', save: jest.fn() };
+        const novaSenhaCriptografada = 'novaSenhaCripto';
+
+        User.findByPk.mockResolvedValue(mockUser);
+        bcrypt.compare.mockResolvedValue(true);
+        encryptPasswordUtil.mockResolvedValue(novaSenhaCriptografada);
+
+        const body = { id: 1, atual: 'senhaAtual', nova: 'senhaNova' };
+        await UserService.updatePassword(body);
+
+        expect(bcrypt.compare).toHaveBeenCalledWith('senhaAtual', 'encryptedOld');
+        expect(mockUser.senha).toBe(novaSenhaCriptografada);
+        expect(mockUser.save).toHaveBeenCalled();
+    });
+
+    test('updatePassword: deve lançar NotFoundError se o usuário não existir', async () => {
+        User.findByPk.mockResolvedValue(null);
+
+        const body = {
+            id: 999,
+            atual: 'senhaQualquer',
+            nova: 'novaSenha123'
+        };
+
+        await expect(UserService.updatePassword(body))
+            .rejects
+            .toThrow(NotFoundError);
+
+        expect(User.findByPk).toHaveBeenCalledWith(999);
+    });
+
+
+
+    test('updatePhoto: deve atualizar a foto do usuário', async () => {
+        const mockUser = { update: jest.fn(), id: 1 };
+        User.findByPk.mockResolvedValue(mockUser);
+
+        const result = await UserService.updatePhoto(1, 'fotos/nova.jpg');
+
+        expect(User.findByPk).toHaveBeenCalledWith(1);
+        expect(mockUser.update).toHaveBeenCalledWith({ foto: 'fotos/nova.jpg' });
+        expect(result).toBe(mockUser);
+    });
+
+    test('updatePhoto: deve lançar NotFoundError se o usuário não existir', async () => {
+        User.findByPk.mockResolvedValue(null);
+
+        await expect(UserService.updatePhoto(999, 'foto/nova.jpg'))
+            .rejects
+            .toThrow(NotFoundError);
+    });
+
+    test('getPhoto: deve lançar NotFoundError se o usuário não existir ou não tiver foto', async () => {
+       User.findByPk.mockResolvedValue(null);
+       await expect(UserService.getPhoto(1)).rejects.toThrow(NotFoundError);
+
+       User.findByPk.mockResolvedValue({ id: 1, foto: null });
+       await expect(UserService.getPhoto(1)).rejects.toThrow(NotFoundError);
+    });
+
+    test('update: deve atualizar os dados do usuário exceto senha', async () => {
+        const mockUser = { update: jest.fn(), id: 1 };
+        User.findByPk.mockResolvedValue(mockUser);
+
+        const result = await UserService.update(1, { name: 'Novo Nome', senha: 'naoDeveAtualizar' });
+
+        expect(User.findByPk).toHaveBeenCalledWith(1);
+        expect(mockUser.update).toHaveBeenCalledWith({ name: 'Novo Nome' });
+        expect(result).toBe(mockUser);
+    });
+
+
 
 });

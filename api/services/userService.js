@@ -30,7 +30,7 @@ class UserService {
             user.senha = await encryptPassword(body.nova);
             await user.save();
         } else {
-            throw new PermissionError('Senha atual incorreta!');
+            throw new NotFoundError('Usuário não encontrado.');
         }
     }
 
