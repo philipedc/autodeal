@@ -7,31 +7,39 @@ on:
     branches: [ main ]
 
 jobs:
-  build-test-upload:
+  build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [18]
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '18'
 
-      - name: Install dependencies
+      - name: Install dependencies for API
         run: |
           cd api
           npm install
 
-      - name: Run tests with coverage
+      - name: Install dependencies for Client
+        run: |
+          cd client
+          npm install
+
+      - name: Install wait-on in Root
+        run: |
+          npm install wait-on --save-dev
+
+      - name: Run API tests
         run: |
           cd api
-          npm run test:coverage
+          npm run test:covarage
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest'
@@ -40,3 +48,82 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./api/coverage/lcov.info
           fail_ci_if_error: true
+
+      - name: Start API, Client and Run Cypress on Linux/macOS
+        if: runner.os != 'Windows'
+        run: |
+          echo "Starting API and Client on Unix-like OS"
+          export PORT=3000
+          export VUE_APP_API_URL=http://localhost:3000
+          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          export JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+          cd api
+          nohup npm start > ../api.log 2> ../api_error.log &
+          API_PID=$!
+          echo "API started with PID $API_PID"
+          cd ../client
+          nohup npm run dev -- --port 8080 --host 0.0.0.0 > ../client.log 2> ../client_error.log &
+          CLIENT_PID=$!
+          echo "Client started with PID $CLIENT_PID"
+          sleep 15
+          if curl -s http://localhost:3000 > /dev/null; then
+            echo "API is up"
+          else
+            echo "API is not up yet, waiting..."
+            npx wait-on --timeout 120000 http://localhost:3000
+          fi
+          if curl -s http://localhost:8080 > /dev/null; then
+            echo "Client is up"
+          else
+            echo "Client is not up yet, waiting..."
+            npx wait-on --timeout 120000 http://localhost:8080
+          fi
+          npx cypress run
+        shell: bash
+        env:
+          CI: true
+          CYPRESS_BASE_URL: 'http://localhost:8080'
+          PORT: 3000
+          VUE_APP_API_URL: 'http://localhost:3000'
+          JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+          JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+
+      - name: Start API, Client and Run Cypress on Windows
+        if: runner.os == 'Windows'
+        run: |
+          Write-Output "Starting API and Client on Windows"
+          $env:PORT = "3000"
+          $env:VUE_APP_API_URL = "http://localhost:3000"
+          $env:JWT_SECRET = "${{ secrets.JWT_SECRET }}"
+          $env:JWT_EXPIRATION = "${{ secrets.JWT_EXPIRATION }}"
+          Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "start" -WorkingDirectory "api" -RedirectStandardOutput "api.log" -RedirectStandardError "api_error.log" -PassThru | Out-Null
+          Write-Output "API started"
+          Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "run dev -- --port 8080 --host 0.0.0.0" -WorkingDirectory "client" -RedirectStandardOutput "client.log" -RedirectStandardError "client_error.log" -PassThru | Out-Null
+          Write-Output "Client started"
+          Start-Sleep -Seconds 15
+          try {
+            $apiResponse = Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing -ErrorAction Stop
+            Write-Output "API is up"
+          }
+          catch {
+            Write-Output "API is not up yet, waiting..."
+            npx wait-on --timeout 120000 http://localhost:3000
+          }
+          try {
+            $clientResponse = Invoke-WebRequest -Uri http://localhost:8080 -UseBasicParsing -ErrorAction Stop
+            Write-Output "Client is up"
+          }
+          catch {
+            Write-Output "Client is not up yet, waiting..."
+            npx wait-on --timeout 120000 http://localhost:8080
+          }
+          Set-Location -Path "client"
+          npx cypress run
+        shell: powershell
+        env:
+          CI: true
+          CYPRESS_BASE_URL: 'http://localhost:8080'
+          PORT: 3000
+          VUE_APP_API_URL: 'http://localhost:3000'
+          JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+          JWT_EXPIRATION: "${{ secrets.JWT_EXPIRATION }}"
