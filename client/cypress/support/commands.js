@@ -26,10 +26,10 @@
 
 import 'cypress-file-upload';
 Cypress.Commands.add('register', (email, password) => {
-    cy.visit('localhost:8080/#/login');
+    cy.visit('/#/login');
 
     // Abrir o modal de registro
-    cy.get('span').contains('Faça seu cadastro').click();
+    cy.get('[data-testid="open-register-modal"]', { timeout: 10000 }).should('be.visible').click();
 
     // Preencher os campos de registro
     cy.get('input#nameReg').type('Teste Usuário');
