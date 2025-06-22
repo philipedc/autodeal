@@ -31,7 +31,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { logout } from '@/controllers/UserController'
-import logo from '@/assets/images/logo.png'
+import logo from '@/assets/images/main_logo.png'
 import userDefault from '@/assets/images/user-default-image.png'
 
 export default {

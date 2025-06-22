@@ -60,8 +60,8 @@
 <script>
 import ModalComponent from '@/components/modals/ModalComponent.vue'
 import { mapActions, mapGetters } from 'vuex'
-import logo from '@/assets/images/logo.png'
-import icon from '@/assets/images/icon.png'
+import logo from '@/assets/images/main_logo.png'
+import icon from '@/assets/images/main_icon.png'
 import { login, logout, register } from '@/controllers/UserController'
 import { vMaska } from 'maska/vue'
 

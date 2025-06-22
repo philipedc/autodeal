@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import icon from '@/assets/images/icon.png'
+import icon from '@/assets/images/main_icon.png'
 import userDefault from '@/assets/images/user-default-image.png'
 import UserCars from '@/components/user-profile/UserCars.vue'
 import UserHistory from '@/components/user-profile/UserHistory.vue'
