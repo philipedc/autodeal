@@ -23,7 +23,7 @@
                   <button>Entrar</button>
               </div>
 
-              <p>Novo usuário? <span @click="registerModalOpen = true">Faça seu cadastro</span></p>
+              <p>Novo usuário? <span data-testid="open-register-modal" @click="registerModalOpen = true">Faça seu cadastro</span></p>
           </div>
       </div>
 
