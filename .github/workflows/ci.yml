@@ -78,7 +78,6 @@ jobs:
             echo "Client is not up yet, waiting..."
             npx wait-on --timeout 120000 http://localhost:8080
           fi
-          npx wait-on --timeout 120000 http://localhost:8080/src/main.js
           npx cypress run
         shell: bash
         env:
@@ -93,6 +92,10 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           Write-Output "Starting API and Client on Windows"
+          $env:PORT = "3000"
+          $env:VUE_APP_API_URL = "http://localhost:3000"
+          $env:JWT_SECRET = "${{ secrets.JWT_SECRET }}"
+          $env:JWT_EXPIRATION = "${{ secrets.JWT_EXPIRATION }}"
           Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "start" -WorkingDirectory "api" -RedirectStandardOutput "api.log" -RedirectStandardError "api_error.log" -PassThru | Out-Null
           Write-Output "API started"
           Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "run dev -- --port 8080 --host 0.0.0.0" -WorkingDirectory "client" -RedirectStandardOutput "client.log" -RedirectStandardError "client_error.log" -PassThru | Out-Null
