@@ -26,7 +26,7 @@
 
 import 'cypress-file-upload';
 Cypress.Commands.add('register', (email, password) => {
-    cy.visit('localhost:5173/#/login');
+    cy.visit('localhost:8080/#/login');
 
     // Abrir o modal de registro
     cy.get('span').contains('Faça seu cadastro').click();

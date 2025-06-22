@@ -11,7 +11,7 @@ const path = require('path');
 const app = express();
 
 const options = {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:8080',
     credentials: true
 };
 app.use(cors(options));
