@@ -78,6 +78,7 @@ jobs:
             echo "Client is not up yet, waiting..."
             npx wait-on --timeout 120000 http://localhost:8080
           fi
+          npx wait-on --timeout 120000 http://localhost:8080/src/main.js
           npx cypress run
         shell: bash
         env:

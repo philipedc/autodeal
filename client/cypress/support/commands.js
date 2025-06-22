@@ -27,6 +27,7 @@
 import 'cypress-file-upload';
 Cypress.Commands.add('register', (email, password) => {
     cy.visit('/#/login');
+    cy.wait(2000);
 
     // Abrir o modal de registro
     cy.get('[data-testid="open-register-modal"]', { timeout: 10000 }).should('be.visible').click();
