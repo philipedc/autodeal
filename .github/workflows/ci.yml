@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [18, 20]
+        node-version: [20]
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -96,28 +96,52 @@ jobs:
           $env:VUE_APP_API_URL = "http://localhost:3000"
           $env:JWT_SECRET = ${{ secrets.JWT_SECRET }}
           $env:JWT_EXPIRATION = ${{ secrets.JWT_EXPIRATION }}
-          Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "start" -WorkingDirectory "api" -RedirectStandardOutput "api.log" -RedirectStandardError "api_error.log" -PassThru | Out-Null
-          Write-Output "API started"
-          Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "run dev -- --port 8080 --host 0.0.0.0" -WorkingDirectory "client" -RedirectStandardOutput "client.log" -RedirectStandardError "client_error.log" -PassThru | Out-Null
-          Write-Output "Client started"
-          Start-Sleep -Seconds 15
+          
+          # Start API
+          Write-Output "Starting API..."
+          Start-Process -NoNewWindow -FilePath "npm" `
+            -ArgumentList "start" `
+            -WorkingDirectory "api" `
+            -RedirectStandardOutput "api.log" `
+            -RedirectStandardError "api_error.log" `
+            -PassThru | Out-Null
+          Write-Output "API process started"
+
+          # Start Client
+          Write-Output "Starting Client..."
+          Start-Process -NoNewWindow -FilePath "npm" `
+            -ArgumentList "run dev -- --port 8080 --host 0.0.0.0" `
+            -WorkingDirectory "client" `
+            -RedirectStandardOutput "client.log" `
+            -RedirectStandardError "client_error.log" `
+            -PassThru | Out-Null
+          Write-Output "Client process started"
+
+          # Wait for API to be available
+          Write-Output "Waiting for API to be available on http://localhost:3000 ..."
           try {
-            $apiResponse = Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing -ErrorAction Stop
+            npx wait-on --timeout 120000 --httpTimeout 10000 http://localhost:3000
             Write-Output "API is up"
+          } catch {
+            Write-Output "API failed to start within timeout. Last 20 lines of api_error.log:"
+            Get-Content -Path "api_error.log" -Tail 20
+            Exit 1
           }
-          catch {
-            Write-Output "API is not up yet, waiting..."
-            npx wait-on --timeout 120000 http://localhost:3000
-          }
+
+          # Wait for Client to be available
+          Write-Output "Waiting for Client to be available on http://localhost:8080 ..."
           try {
-            $clientResponse = Invoke-WebRequest -Uri http://localhost:8080 -UseBasicParsing -ErrorAction Stop
+            npx wait-on --timeout 120000 --httpTimeout 10000 http://localhost:8080
             Write-Output "Client is up"
+          } catch {
+            Write-Output "Client failed to start within timeout. Last 20 lines of client_error.log:"
+            Get-Content -Path "client_error.log" -Tail 20
+            Exit 1
           }
-          catch {
-            Write-Output "Client is not up yet, waiting..."
-            npx wait-on --timeout 120000 http://localhost:8080
-          }
+
+          # Run Cypress
           Set-Location -Path "client"
+          Write-Output "Running Cypress tests..."
           npx cypress run
         shell: powershell
         env:
