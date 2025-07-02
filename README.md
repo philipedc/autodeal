@@ -43,4 +43,4 @@ Implementar um sistema online para a intermediação da compra e venda de veícu
 * **Vue Router:** Gerenciamento das rotas da aplicação
 * **Vuex:** Gerenciamento de estado
 * **Less:** Pré-processador CSS
-* * **Cypress:** Testes e2e
+* **Cypress:** Testes e2e
