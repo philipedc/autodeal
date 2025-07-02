@@ -44,4 +44,22 @@ describe('Usuário - Registro e Login', () => {
     // Verificar se o usuário foi redirecionado para a página inicial
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
   });
+
+    it('Não deve permitir login com credenciais inválidas', () => {
+    cy.visit('/login');
+
+    // Preencher com credenciais inválidas
+    cy.get('input#email').type('usuario_invalido@example.com');
+    cy.get('input#password').type('SenhaErrada');
+
+    // Tentar fazer login
+    cy.get('.button button').click();
+
+    // Verificar a mensagem de erro
+    cy.contains('Usuário ou senha incorretos.').should('be.visible');
+
+    // Permanece na mesma página de login
+    cy.url().should('include', '/login');
+  });
+
 });
