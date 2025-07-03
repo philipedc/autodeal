@@ -2,6 +2,13 @@
   <div class="profile-view">
     <header>
       <img class="logo" alt="TradeHub logo" :src="icon" @click="this.$router.push('/')">
+
+      <div class="logout">
+        <button class="btn btn-logout" @click="logout()" data-cy="logout-button">
+          <i class="fa fa-sign-out"></i>
+          Sair
+        </button>
+      </div>
     </header>
     
     <div class="user-info">
@@ -68,7 +75,7 @@ import UserHistory from '@/components/user-profile/UserHistory.vue'
 import UserRegistration from '@/components/user-profile/UserRegistration.vue'
 import { mapGetters, mapActions } from 'vuex'
 import ModalComponent from '@/components/modals/ModalComponent.vue'
-import { updatePhoto } from '@/controllers/UserController'
+import { updatePhoto, logout } from '@/controllers/UserController'
 
 export default {
   name: 'ProfileView',
@@ -169,6 +176,12 @@ export default {
                 duration: 5000
             })
         })
+    },
+    async logout () {
+      await logout().catch(() => {
+        console.log('Erro ao deslogar usuário.')
+      })
+      this.$router.push('/login')
     }
   },
   computed: {
@@ -202,8 +215,10 @@ export default {
   
   header {
     display: flex;
-    justify-content: flex-start;
-    align-items: center;  
+    flex-direction: row;  
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;    
 
     .logo {
       width: 100px;
@@ -212,6 +227,28 @@ export default {
       margin-top: 10px;
       cursor: pointer;
       margin-left: 20px;
+    }
+
+    .logout {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .btn-logout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--primaryColor);
+        font-size: 16px;
+
+        i {
+          margin-right: 5px;
+          font-size: 20px;
+        }
+      }
     }
   }
 

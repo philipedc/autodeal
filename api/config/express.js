@@ -28,6 +28,12 @@ app.use('/users', userRoutes)
 app.use('/cars', carRoutes)
 app.use('/sales', saleRoutes)
 
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: 'Bem-vindo à API Autodeal!'
+    });
+});
+
 const staticUploadsPath = path.join(__dirname, '..', 'uploads');
 console.log(`Servindo arquivos estáticos de: ${staticUploadsPath}`);
 app.use('/uploads', express.static(staticUploadsPath));

@@ -1,12 +1,6 @@
 describe('Perfil - Editar informações', () => {
-    let email;
-    let password;
     before(() => {
-        const timestamp = Date.now();
-        email = `user${timestamp}@example.com`;
-        password = '123';
-        cy.register(email, password);
-        cy.wait(500);
+        cy.login('iago@gmail.com', '123');
     });
 
     it('Deve editar o nome e telefone do perfil', () => {

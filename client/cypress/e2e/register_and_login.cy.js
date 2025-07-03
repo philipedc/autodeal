@@ -45,7 +45,7 @@ describe('Usuário - Registro e Login', () => {
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
   });
 
-    it('Não deve permitir login com credenciais inválidas', () => {
+  it('Não deve permitir login com credenciais inválidas', () => {
     cy.visit('/login');
 
     // Preencher com credenciais inválidas

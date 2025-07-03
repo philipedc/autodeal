@@ -54,9 +54,6 @@ export default {
       hideDropdown() {
           this.isDropDownVisible = false
       },
-      async logout() {
-          this.$router.push('/')
-      },
       getFirstName(name) {
           if (!name) return ''
           return name.split(' ')[0]

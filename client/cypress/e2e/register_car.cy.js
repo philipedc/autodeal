@@ -1,17 +1,8 @@
 describe('Registra carro', () => {
-  const user = {
-    email: 'iago@gmail.com',
-    senha: '123'
-  };
 
   beforeEach(() => {
-    // login via UI
-    cy.visit('/login');
-    cy.get('input#email').type(user.email);
-    cy.get('input#password').type(user.senha);
-    cy.get('.button button').click();
-    cy.url().should('eq', `${Cypress.config().baseUrl}/`);
-
+    cy.login('iago@gmail.com', '123');
+      
     // abre o modal de cadastro
     cy.visit('/profile');
     cy.get('h2').contains('Cadastrar Carro').click();

@@ -1,7 +1,7 @@
 const app = require('./config/express');
 require('dotenv').config();
 
-PORT = process.env.PORT;
+PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     try {

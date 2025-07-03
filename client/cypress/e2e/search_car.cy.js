@@ -1,13 +1,6 @@
 describe('Carro - Buscar Carro', () => {
-  let email;
-  let password;
-
   before(() => {
-    const timestamp = Date.now();
-    email = `user${timestamp}@example.com`;
-    password = '123';
-    cy.register(email, password);
-    cy.wait(500);
+     cy.login('iago@gmail.com', '123');
   });
 
   it('Deve buscar um carro pelo nome com sucesso', () => {
